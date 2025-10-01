@@ -1,0 +1,34 @@
+name: Deploy Directly (No Docker Hub)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy-and-build-remote:
+    name: Copy source and Build on Remote
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy files to Play with Docker via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PWD_HOST }}
+          username: ${{ secrets.PWD_USER }}
+          password: ${{ secrets.PWD_PASSWORD }}
+          source: "./"
+          target: "/root/custom-static-web"
+          
+      - name: Build and Deploy on Play with Docker via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PWD_HOST }}
+          username: ${{ secrets.PWD_USER }}
+          password: ${{ secrets.PWD_PASSWORD }}
+          script: |
+            # Navigate to the project directory
+            cd /root/custom-static-web
+            
+            # Use Docker Compose to build the image from the copied source and run the container
+            docker-compose up -d --build

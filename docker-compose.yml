@@ -1,0 +1,6 @@
+name: 'custom-static-site'
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"

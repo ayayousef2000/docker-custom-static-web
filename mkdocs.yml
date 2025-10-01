@@ -1,0 +1,15 @@
+site_name: My Professional Static Site
+site_author: Aya Yousef
+site_description: "A demonstration of a custom MkDocs theme and a professional GitHub Actions deployment pipeline."
+
+nav:
+  - 'Home': 'index.md'
+  - 'About Me': 'about.md'
+  - 'Projects': 'projects.md'
+
+theme:
+  name: null
+  custom_dir: 'custom_theme'
+
+extra_css:
+  - css/custom.css

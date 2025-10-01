@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ page.title | e }} | {{ config.site_name | e }}</title>
+    <meta name="description" content="{{ config.site_description | e }}">
+    <meta name="author" content="{{ config.site_author | e }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="{{ base_url }}/css/custom.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ nav.homepage.url | url }}" class="site-title">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>{{ config.site_name }}</span>
+                </a>
+                
+                <nav class="site-nav">
+                    <ul>
+                        {% for nav_item in nav %}
+                        <li class="{% if nav_item.active %}active{% endif %}">
+                            <a href="{{ nav_item.url | url }}">{{ nav_item.title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            {{ page.content }}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="copyright">
+                    Copyright &copy; 2025 {{ config.site_author }}
+                </div>
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/aya-yousef-418884272/" target="_blank" aria-label="LinkedIn">
+                        <i class="fa-brands fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:eng.aya.yousef.2000@gmail.com" aria-label="Email">
+                        <i class="fa-solid fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

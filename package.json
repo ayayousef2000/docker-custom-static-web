@@ -1,0 +1,26 @@
+{
+  "name": "custom-static-web",
+  "version": "1.0.0",
+  "description": "A professional static site build pipeline.",
+  "main": "index.js",
+  "scripts": {
+    "typograf": "node run-typograf.js",
+    "postcss": "postcss custom_theme/src/css/custom.css -o custom_theme/css/custom.css",
+    "validate-html": "html-validator --glob \"site/**/*.html\"",
+    "minify-html": "html-minifier --input-dir site --output-dir site --file-ext html --collapse-whitespace --remove-comments",
+    "build": "npm run typograf && npm run postcss && mkdocs build && npm run minify-html",
+    "serve": "python -m http.server --directory site 8000"
+  },
+  "keywords": [],
+  "author": "Aya Yousef",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "glob": "^10.3.15",
+    "html-minifier": "^4.0.0",
+    "html-validator-cli": "^2.0.0",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0",
+    "typograf": "^7.4.0"
+  }
+}

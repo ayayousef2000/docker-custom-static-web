@@ -1,0 +1,45 @@
+name: Deploy via Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-push-and-deploy:
+    name: Build, Push to Docker Hub, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+
+      - name: Deploy to Play with Docker
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PWD_HOST }}
+          username: ${{ secrets.PWD_USER }}
+          password: ${{ secrets.PWD_PASSWORD }}
+          script: |
+            # Pull the latest image from Docker Hub
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            
+            # Stop and remove the old container if it exists
+            docker stop my-site || true
+            docker rm my-site || true
+            
+            # Run the new container from the new image
+            docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest

@@ -1,0 +1,9 @@
+# Python
+venv/
+__pycache__/
+
+# Node.js
+node_modules/
+
+# MkDocs
+site/
