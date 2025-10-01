@@ -11,15 +11,18 @@ jobs:
     name: Build, Push to Docker Hub, and Deploy
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Check out the repository's code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Log in to Docker Hub using secrets
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Step 3: Build the Docker image and push it to Docker Hub
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -27,6 +30,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
 
+      # ===================================================================
+      # TEMPORARY DEBUGGING STEP
+      # This block prints your secrets to the log.
+      # REMOVE THIS ENTIRE BLOCK AFTER YOU HAVE DIAGNOSED THE PROBLEM.
+      # ===================================================================
+      - name: Debug Secrets
+        run: |
+          echo "Host value: [${{ secrets.PWD_HOST }}]"
+          echo "User value: [${{ secrets.PWD_USER }}]"
+          echo "Is PWD_PASSWORD set?: [${{ secrets.PWD_PASSWORD != '' }}]"
+          echo "Length of PWD_PASSWORD: [$(echo -n '${{ secrets.PWD_PASSWORD }}' | wc -c)]"
+          echo "Is DOCKERHUB_USERNAME set?: [${{ secrets.DOCKERHUB_USERNAME != '' }}]"
+      # ===================================================================
+      # END OF DEBUGGING STEP
+      # ===================================================================
+
+      # Step 4: Connect to the remote server and deploy the new image
       - name: Deploy to Play with Docker
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -34,12 +54,12 @@ jobs:
           username: ${{ secrets.PWD_USER }}
           password: ${{ secrets.PWD_PASSWORD }}
           script: |
-            # Pull the latest image from Docker Hub
+            # Pull the latest version of the image from Docker Hub
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             
-            # Stop and remove the old container if it exists
+            # Stop and remove the old container to avoid conflicts
             docker stop my-site || true
             docker rm my-site || true
             
-            # Run the new container from the new image
+            # Run a new container from the updated image
             docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
