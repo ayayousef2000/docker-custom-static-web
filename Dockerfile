@@ -1,8 +1,7 @@
 # ---- Stage 1: Build Environment ----
 FROM node:18-alpine AS builder
 
-RUN apk add --no-cache python3 py3-pip && \
-    pip3 install mkdocs
+RUN apk add --no-cache python3 py3-pip py3-mkdocs
 
 WORKDIR /app
 
