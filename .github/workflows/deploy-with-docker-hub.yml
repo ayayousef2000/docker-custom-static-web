@@ -44,10 +44,16 @@ jobs:
             set -e
             echo "Connection established. Proceeding with deployment."
             
-            # Log in to Docker Hub using the --password flag for debugging
-            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
+            # Create the Docker config directory
+            mkdir -p ~/.docker
             
-            echo "Pulling latest Docker image..."
+            # Create the Docker config.json file and authenticate
+            echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n ${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }} | base64)'"}}}' > ~/.docker/config.json
+            
+            # Set secure permissions for the config file
+            chmod 600 ~/.docker/config.json
+            
+            echo "Docker authentication configured. Pulling image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             
             echo "Stopping and removing old container..."
