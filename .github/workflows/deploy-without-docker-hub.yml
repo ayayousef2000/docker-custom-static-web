@@ -11,13 +11,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create target directory on remote
+      - name: Create and set permissions for target directory
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
-          script: mkdir -p /root/custom-static-web
+          script: |
+            sudo mkdir -p /opt/custom-static-web
+            sudo chown ${{ secrets.PWD_USER }} /opt/custom-static-web
 
       - name: Copy files to Play with Docker via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -26,7 +28,7 @@ jobs:
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
           source: "./"
-          target: "/root/custom-static-web"
+          target: "/opt/custom-static-web"
           
       - name: Build and Deploy on Play with Docker via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -35,5 +37,8 @@ jobs:
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
           script: |
-            cd /root/custom-static-web
+            # Navigate to the project directory
+            cd /opt/custom-static-web
+            
+            # Use Docker Compose to build the image from the copied source and run the container
             docker-compose up -d --build
