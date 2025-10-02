@@ -39,14 +39,12 @@ jobs:
           key: ${{ secrets.PWD_SSH_KEY }}
           command_timeout: 10m
           debug: true
-          request_pty: true # Add this line to stabilize the SSH connection
+          request_pty: true
           script: |
             set -e
-            echo "Connection established. Testing instance stability for 15 seconds..."
-            sleep 15
-            echo "Instance is stable. Proceeding with deployment."
+            echo "Connection established. Proceeding with deployment."
             echo "Pulling latest Docker image..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            docker pull ${{ secrets.DOCK_USERNAME }}/custom-static-web:latest
             echo "Stopping and removing old container..."
             docker stop my-site || true
             docker rm my-site || true
