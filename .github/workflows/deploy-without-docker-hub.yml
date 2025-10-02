@@ -17,6 +17,7 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
+          port: 22
           script: |
             sudo mkdir -p /opt/custom-static-web
             sudo chown ${{ secrets.PWD_USER }} /opt/custom-static-web
@@ -27,6 +28,7 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
+          port: 22
           source: "./"
           target: "/opt/custom-static-web"
           
@@ -36,6 +38,7 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
+          port: 22
           script: |
             # Navigate to the project directory
             cd /opt/custom-static-web
