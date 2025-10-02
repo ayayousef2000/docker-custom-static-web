@@ -37,6 +37,7 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
+          command_timeout: 10m
           script: |
             set -e
             echo "Pulling latest Docker image..."
