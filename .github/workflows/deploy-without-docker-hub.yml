@@ -11,24 +11,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # This single step replaces the create, scp, and move steps.
-      # It securely syncs the files to the correct directory.
       - name: Deploy files to remote server via rsync
         uses: easingthemes/ssh-deploy@v5.0.0
         with:
-          # Private SSH key
           SSH_PRIVATE_KEY: ${{ secrets.PWD_SSH_KEY }}
-          # The remote host address
           REMOTE_HOST: ${{ secrets.PWD_HOST }}
-          # The remote user
           REMOTE_USER: ${{ secrets.PWD_USER }}
-          # The remote port
           REMOTE_PORT: ${{ secrets.PWD_PORT }}
-          # The source directory on the GitHub runner
           SOURCE: "./"
-          # The target directory on the remote server
           TARGET: "/opt/custom-static-web"
-          # Arguments to create the target directory and run as sudo
+          # Exclude git and GitHub workflow files from the deployment
+          EXCLUDE: "/.git*, /.github*"
           ARGS: "-rltgoDzvO --rsync-path='sudo rsync' --delete"
 
       - name: Build and Deploy on Play with Docker via SSH
