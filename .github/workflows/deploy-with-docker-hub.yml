@@ -43,20 +43,25 @@ jobs:
             set -e
             echo "Connection established. Proceeding with deployment."
             
+            # Log in to Docker Hub using sudo for necessary permissions
             echo "Authenticating with Docker Hub..."
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            echo "${{ secrets.DOCKUP_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
+            # Pull the latest version of the image using sudo
             echo "Pulling latest image..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             
+            # Stop and remove the old container if it exists, using sudo
             echo "Stopping and removing old container if it exists..."
-            docker stop my-site || true
-            docker rm my-site || true
+            sudo docker stop my-site || true
+            sudo docker rm my-site || true
             
+            # Start a new container with the updated image, using sudo
             echo "Starting new container..."
-            docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            sudo docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             
+            # Clean up dangling images to save space, using sudo
             echo "Cleaning up old images..."
-            docker image prune -af
+            sudo docker image prune -af
             
             echo "Deployment successful!"
