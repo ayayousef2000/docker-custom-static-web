@@ -39,28 +39,24 @@ jobs:
           key: ${{ secrets.PWD_SSH_KEY }}
           command_timeout: 10m
           debug: true
-          request_pty: true
           script: |
             set -e
             echo "Connection established. Proceeding with deployment."
             
-            # Create the Docker config directory
-            mkdir -p ~/.docker
+            echo "Authenticating with Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            # Create the Docker config.json file and authenticate
-            echo '{"auths":{"https://index.docker.io/v1/":{"auth":"'$(echo -n ${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }} | base64)'"}}}' > ~/.docker/config.json
-            
-            # Set secure permissions for the config file
-            chmod 600 ~/.docker/config.json
-            
-            echo "Docker authentication configured. Pulling image..."
+            echo "Pulling latest image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             
-            echo "Stopping and removing old container..."
+            echo "Stopping and removing old container if it exists..."
             docker stop my-site || true
             docker rm my-site || true
             
             echo "Starting new container..."
             docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            
+            echo "Cleaning up old images..."
+            docker image prune -af
             
             echo "Deployment successful!"
