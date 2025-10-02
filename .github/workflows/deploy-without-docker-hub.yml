@@ -16,7 +16,7 @@ jobs:
         with:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
-          password: ${{ secrets.PWD_PASSWORD }}
+          key: ${{ secrets.PWD_SSH_KEY }}
           source: "./"
           target: "/root/custom-static-web"
           
@@ -25,10 +25,8 @@ jobs:
         with:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
-          password: ${{ secrets.PWD_PASSWORD }}
+          key: ${{ secrets.PWD_SSH_KEY }}
           script: |
-            # Navigate to the project directory
             cd /root/custom-static-web
-            
-            # Use Docker Compose to build the image from the copied source and run the container
+
             docker-compose up -d --build
