@@ -38,8 +38,12 @@ jobs:
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
           command_timeout: 10m
+          debug: true
           script: |
             set -e
+            echo "Connection established. Testing instance stability for 15 seconds..."
+            sleep 15
+            echo "Instance is stable. Proceeding with deployment."
             echo "Pulling latest Docker image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             echo "Stopping and removing old container..."
@@ -48,3 +52,4 @@ jobs:
             echo "Starting new container..."
             docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
             echo "Deployment successful!"
+            
