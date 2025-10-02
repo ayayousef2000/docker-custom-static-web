@@ -44,8 +44,8 @@ jobs:
             set -e
             echo "Connection established. Proceeding with deployment."
             
-            # Log in to Docker Hub on the remote server
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            # Log in to Docker Hub using the --password flag for debugging
+            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
             
             echo "Pulling latest Docker image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
