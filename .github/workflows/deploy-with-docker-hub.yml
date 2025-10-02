@@ -44,7 +44,7 @@ jobs:
             set -e
             echo "Connection established. Proceeding with deployment."
             echo "Pulling latest Docker image..."
-            docker pull ${{ secrets.DOCK_USERNAME }}/custom-static-web:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest # Corrected secret name
             echo "Stopping and removing old container..."
             docker stop my-site || true
             docker rm my-site || true
