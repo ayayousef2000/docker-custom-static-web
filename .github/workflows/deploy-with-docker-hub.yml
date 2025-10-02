@@ -8,60 +8,81 @@ on:
 
 jobs:
   build-push-and-deploy:
-    name: Build, Push to Docker Hub, and Deploy
+    name: Build, Push, and Deploy
     runs-on: ubuntu-latest
     steps:
       # Step 1: Check out the repository's code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Log in to Docker Hub using secrets
+      # Step 2: Log in to Docker Hub (Runner context)
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 3: Build the Docker image and push it to Docker Hub
+      # Step 3: Build and push with multiple tags (SHA and latest)
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+          # Tag with the specific Commit SHA for precision, and 'latest' for convenience
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
 
-      # Step 4: Connect to the remote server and deploy the new image
-      - name: Deploy to Play with Docker
+      # Step 4: Connect to remote server and deploy the specific SHA version
+      - name: Deploy to Remote Server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          # Define environment variables to pass into the script cleanly
+          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web
+          # We deploy the specific SHA we just built, not just 'latest'
+          DEPLOY_TAG: ${{ github.sha }}
+          CONTAINER_NAME: my-site
         with:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
-          command_timeout: 10m
-          debug: true
+          # Explicitly pass the env variables defined above to the remote shell
+          envs: DOCKER_USER,DOCKER_TOKEN,IMAGE_NAME,DEPLOY_TAG,CONTAINER_NAME
+          command_timeout: 15m
           script: |
-            set -e
-            echo "Connection established. Proceeding with deployment."
-            
-            # Log in to Docker Hub using sudo for necessary permissions
-            echo "Authenticating with Docker Hub..."
-            echo "${{ secrets.DOCKUP_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            
-            # Pull the latest version of the image using sudo
-            echo "Pulling latest image..."
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
-            
-            # Stop and remove the old container if it exists, using sudo
-            echo "Stopping and removing old container if it exists..."
-            sudo docker stop my-site || true
-            sudo docker rm my-site || true
-            
-            # Start a new container with the updated image, using sudo
+            # Robust bash error handling (exit on error, unset vars, pipe failures)
+            set -euo pipefail
+
+            echo "Starting deployment of ${IMAGE_NAME}:${DEPLOY_TAG}..."
+
+            # 1. Authenticate with Docker Hub on the remote server
+            echo "Authenticating..."
+            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
+
+            # 2. Pull the specific commit version
+            echo "Pulling image: ${IMAGE_NAME}:${DEPLOY_TAG}"
+            docker pull ${IMAGE_NAME}:${DEPLOY_TAG}
+
+            # 3. Stop and remove the old container safely
+            echo "Replacing container '${CONTAINER_NAME}'..."
+            docker stop ${CONTAINER_NAME} || true
+            docker rm ${CONTAINER_NAME} || true
+
+            # 4. Start the new container with a restart policy
             echo "Starting new container..."
-            sudo docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
-            
-            # Clean up dangling images to save space, using sudo
-            echo "Cleaning up old images..."
-            sudo docker image prune -af
-            
-            echo "Deployment successful!"
+            docker run -d \
+              --name ${CONTAINER_NAME} \
+              --restart unless-stopped \
+              -p 80:80 \
+              ${IMAGE_NAME}:${DEPLOY_TAG}
+
+            # 5. Clean up space
+            echo "Pruning old images..."
+            docker image prune -af
+
+            # 6. Log out for security
+            docker logout
+
+            echo "Deployment of commit ${DEPLOY_TAG} successful!"
