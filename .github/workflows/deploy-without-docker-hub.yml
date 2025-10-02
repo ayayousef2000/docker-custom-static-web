@@ -17,10 +17,10 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
-          port: 22
+          port: ${{ secrets.PWD_PORT }}
           script: |
             sudo mkdir -p /opt/custom-static-web
-            sudo chown ${{ secrets.PWD_USER }} /opt/custom-static-web
+            sudo chown root:root /opt/custom-static-web
 
       - name: Copy files to Play with Docker via SCP
         uses: appleboy/scp-action@v0.1.7
@@ -28,7 +28,7 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
-          port: 22
+          port: ${{ secrets.PWD_PORT }}
           source: "./"
           target: "/opt/custom-static-web"
           
@@ -38,10 +38,9 @@ jobs:
           host: ${{ secrets.PWD_HOST }}
           username: ${{ secrets.PWD_USER }}
           key: ${{ secrets.PWD_SSH_KEY }}
-          port: 22
+          port: ${{ secrets.PWD_PORT }}
           script: |
-            # Navigate to the project directory
             cd /opt/custom-static-web
-            
-            # Use Docker Compose to build the image from the copied source and run the container
-            docker-compose up -d --build
+            docker compose pull
+            docker compose up -d --build --force-recreate --remove-orphans
+            docker image prune -f
