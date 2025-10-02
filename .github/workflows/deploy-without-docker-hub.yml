@@ -22,7 +22,7 @@ jobs:
             sudo mkdir -p /opt/custom-static-web
             sudo chown root:root /opt/custom-static-web
 
-      - name: Copy files to Play with Docker via SCP
+      - name: Copy files to remote temporary directory via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PWD_HOST }}
@@ -30,8 +30,23 @@ jobs:
           key: ${{ secrets.PWD_SSH_KEY }}
           port: ${{ secrets.PWD_PORT }}
           source: "./"
-          target: "/opt/custom-static-web"
-          
+          target: "/tmp/custom-static-web-deploy"
+      
+      - name: Move files to final destination and set ownership
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PWD_HOST }}
+          username: ${{ secrets.PWD_USER }}
+          key: ${{ secrets.PWD_SSH_KEY }}
+          port: ${{ secrets.PWD_PORT }}
+          script: |
+            # Move files from temporary location to the final destination
+            sudo mv /tmp/custom-static-web-deploy/* /opt/custom-static-web/
+            # Ensure the files are also owned by root
+            sudo chown -R root:root /opt/custom-static-web
+            # Clean up the temporary directory
+            sudo rm -rf /tmp/custom-static-web-deploy
+
       - name: Build and Deploy on Play with Docker via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -40,7 +55,14 @@ jobs:
           key: ${{ secrets.PWD_SSH_KEY }}
           port: ${{ secrets.PWD_PORT }}
           script: |
+            # Navigate to the project directory on the remote server
             cd /opt/custom-static-web
+            
+            # Ensure the latest base images are used for the build
             docker compose pull
+
+            # Build the new image, recreate the container, and run in detached mode.
             docker compose up -d --build --force-recreate --remove-orphans
+            
+            # Clean up dangling images to save disk space
             docker image prune -f
