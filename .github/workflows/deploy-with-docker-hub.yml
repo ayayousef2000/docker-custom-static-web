@@ -50,6 +50,5 @@ jobs:
             docker stop my-site || true
             docker rm my-site || true
             echo "Starting new container..."
-            docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest
+            nohup docker run -d --name my-site -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/custom-static-web:latest > /dev/null 2>&1 &
             echo "Deployment successful!"
-            
