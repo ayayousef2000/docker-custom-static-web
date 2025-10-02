@@ -4,50 +4,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  copy-and-build-remote:
-    name: Copy source and Build on Remote
+  deploy-on-remote:
+    name: Deploy source and Build on Remote
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create and set permissions for target directory
-        uses: appleboy/ssh-action@v1.0.3
+      # This single step replaces the create, scp, and move steps.
+      # It securely syncs the files to the correct directory.
+      - name: Deploy files to remote server via rsync
+        uses: easingthemes/ssh-deploy@v5.0.0
         with:
-          host: ${{ secrets.PWD_HOST }}
-          username: ${{ secrets.PWD_USER }}
-          key: ${{ secrets.PWD_SSH_KEY }}
-          port: ${{ secrets.PWD_PORT }}
-          script: |
-            sudo mkdir -p /opt/custom-static-web
-            sudo chown root:root /opt/custom-static-web
-
-      # STAGE 1: Copy files to a temporary directory. This is the fix.
-      - name: Copy files to remote temporary directory via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.PWD_HOST }}
-          username: ${{ secrets.PWD_USER }}
-          key: ${{ secrets.PWD_SSH_KEY }}
-          port: ${{ secrets.PWD_PORT }}
-          source: "./"
-          target: "/tmp/custom-static-web-deploy"
-      
-      # STAGE 2: Move files from temporary to final destination using sudo.
-      - name: Move files to final destination and set ownership
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PWD_HOST }}
-          username: ${{ secrets.PWD_USER }}
-          key: ${{ secrets.PWD_SSH_KEY }}
-          port: ${{ secrets.PWD_PORT }}
-          script: |
-            # Use sudo to move files from the temp location
-            sudo mv /tmp/custom-static-web-deploy/* /opt/custom-static-web/
-            # Ensure final ownership is correct
-            sudo chown -R root:root /opt/custom-static-web
-            # Clean up the temp directory
-            sudo rm -rf /tmp/custom-static-web-deploy
+          # Private SSH key
+          SSH_PRIVATE_KEY: ${{ secrets.PWD_SSH_KEY }}
+          # The remote host address
+          REMOTE_HOST: ${{ secrets.PWD_HOST }}
+          # The remote user
+          REMOTE_USER: ${{ secrets.PWD_USER }}
+          # The remote port
+          REMOTE_PORT: ${{ secrets.PWD_PORT }}
+          # The source directory on the GitHub runner
+          SOURCE: "./"
+          # The target directory on the remote server
+          TARGET: "/opt/custom-static-web"
+          # Arguments to create the target directory and run as sudo
+          ARGS: "-rltgoDzvO --rsync-path='sudo rsync' --delete"
 
       - name: Build and Deploy on Play with Docker via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -57,7 +39,17 @@ jobs:
           key: ${{ secrets.PWD_SSH_KEY }}
           port: ${{ secrets.PWD_PORT }}
           script: |
+            # Navigate to the project directory on the remote server
             cd /opt/custom-static-web
+            
+            # Ensure final ownership is correct before building
+            sudo chown -R root:root /opt/custom-static-web
+
+            # Ensure the latest base images are used for the build
             docker compose pull
+
+            # Build the new image, recreate the container, and run in detached mode.
             docker compose up -d --build --force-recreate --remove-orphans
+            
+            # Clean up dangling images to save disk space
             docker image prune -f
