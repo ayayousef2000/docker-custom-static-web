@@ -37,3 +37,47 @@ A **multi-stage build** approach was used in the `Dockerfile`, which is a best p
 
 ### `docker-compose.yml`
 The `docker-compose.yml` file was created to provide a simple way to define and run the application. It was primarily used by the "Direct Deploy" workflow to build the image and run the container on the remote server with the correct port mappings. The modern `name` attribute was used to define the project's identity within Docker.
+
+## Option 1: Pull and Run the Docker Image from Docker Hub
+
+This option is ideal for quickly running the pre-built Docker image.
+
+1.  **Pull the image from Docker Hub:** Open your terminal in "Play with Docker" (PWD) and execute the following command to download the Docker image:
+
+    ```bash
+    docker pull ayayousef7/custom-static-web:latest
+    ```
+
+2.  **Run the Docker container:** After the image is pulled, run it as a container with this command:
+
+    ```bash
+    docker run -d -p 8080:80 ayayousef7/custom-static-web:latest
+    ```
+
+3.  **Access the application:** Click on the **OPEN PORT** button in PWD, enter `8080`, and click **OK**. Your website will open in a new tab.
+
+---
+
+## Option 2: Build and Run the Image from the GitHub Repository
+
+This option is suitable if you want to build the image from the source code.
+
+1.  **Clone the GitHub repository:** In your PWD terminal, clone the repository using the following command:
+
+    ```bash
+    git clone https://github.com/ayayousef2000/docker-custom-static-web.git
+    ```
+
+2.  **Navigate to the project directory:** Change your current directory to the newly cloned project folder:
+
+    ```bash
+    cd docker-custom-static-web
+    ```
+
+3.  **Build and run the Docker image:** Use Docker Compose to build the image and start the container:
+
+    ```bash
+    docker-compose up
+    ```
+
+4.  **Access the application:** Click on the **OPEN PORT** button in PWD, enter `80`, and click **OK**. The website will then be accessible.
